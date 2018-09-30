@@ -77,10 +77,12 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Packages.cpp" />
+    <ClCompile Include="Xbees.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="devices.h" />
     <ClInclude Include="Packages.h" />
+    <ClInclude Include="Xbees.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>

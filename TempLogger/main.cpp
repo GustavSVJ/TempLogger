@@ -21,6 +21,7 @@
 
 #include "devices.h"
 #include "Packages.h"
+#include "Xbees.h"
 
 using namespace std;
 
@@ -78,48 +79,6 @@ void *UARTReceive(void *UARTReference) {
 		}
 	}
 }
-
-// Compare MAC_adress to the list of Xbees. Return Xbee number if there is a match, if no match is found returns -1
-char CompareALLMAC(char MAC_adress[]) {
-	char k;
-	int match = 0;
-	for (k = 0; k < NUMBER_OF_XBEES; k++) { //compare
-		if (CompareMAC(MAC_adress, k) == 0) {
-			match = 1;
-			break;
-		}
-	}
-	if (match == 1) {
-		return k;
-	}
-	else {
-		return -1;
-	}
-}
-
-// Compare MAC adress to xbee number k in xbee list. Returns 0 if MAC adresses match
-int CompareMAC(char MAC[], char k) {
-	int i;
-	int no = 0;
-	for (i = 0; i < 8; i++) {
-		if (MAC[i] != xbees[k].mac[i])
-			no++;
-	}
-	return no;
-}
-
-void PrintMacInfo(char MAC_adress[]) {
-	int xbeeID = CompareALLMAC(MAC_adress);
-	if (xbeeID == -1) {
-		printf("Unknown MAC adress\n");
-	}
-	else {
-		printf("Package received from ");
-		printf(xbees[xbeeID].name);
-		printf("\n");
-	}
-}
-
 
 int main(int argc, char** argv) {
 
@@ -189,7 +148,7 @@ int main(int argc, char** argv) {
 			packageQueue.pop();
 			package.GetMAC(MAC_adress);
 
-			PrintMacInfo(MAC_adress);
+			Xbees::PrintMacInfo(MAC_adress);
 		}
 
 		sleep(1);

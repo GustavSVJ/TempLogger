@@ -16,8 +16,11 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "devices.h"
 #include <pthread.h>
+#include <queue>
+
+#include "devices.h"
+#include "Packages.h"
 
 using namespace std;
 
@@ -31,113 +34,49 @@ int GetData(char MAC_adress[], char data[], int dataLength);
 char CompareALLMAC(char MAC_adress[]);
 int CompareMAC(char MAC[], char k);
 
-
-#define PackageReceiveBufferSize 50
-#define PackageMaxLength 50
-int packageReceiveBufferHead = 0;
-int packageReceiveBufferTail = 0;
-char packageReceiveLength[PackageReceiveBufferSize];
-char packageReceiveBuffer[PackageReceiveBufferSize][PackageMaxLength];
+queue<Packages> packageQueue;
 
 void *UARTReceive(void *UARTReference) {
 	while (1) {
-		pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-		char receiveBuffer[PackageMaxLength];
+
+		Packages packageAssembly;
+
 		char byteBuffer[5];
 		memset(byteBuffer, 0, 5);
-		memset(receiveBuffer, 0, PackageMaxLength);
 		int UARTFilestream = (int)UARTReference;
 		int receiveCounter = 0;
 
 		while (byteBuffer[0] != 0x7E) {
 			read(UARTFilestream, (void*)byteBuffer, 1);
 		}
-		receiveBuffer[receiveCounter] = byteBuffer[0];
+
+		packageAssembly.AddByte(byteBuffer[0], receiveCounter);
 		receiveCounter++;
 
 		while (receiveCounter < 3) {
 			if (read(UARTFilestream, (void*)byteBuffer, 1) == 1) {
-				receiveBuffer[receiveCounter] = byteBuffer[0];
+				packageAssembly.AddByte(byteBuffer[0], receiveCounter);
 				receiveCounter++;
 			}
 		}
 
-		char packageLength = (receiveBuffer[1] << 4) + receiveBuffer[2] + 4;
-		packageReceiveLength[packageReceiveBufferHead] = packageLength;
-
-		for (; receiveCounter < packageLength;) {
+		while (receiveCounter < packageAssembly.GetLength()) {
 			if (read(UARTFilestream, (void*)byteBuffer, 1) == 1) {
-				receiveBuffer[receiveCounter] = byteBuffer[0];
+				packageAssembly.AddByte(byteBuffer[0], receiveCounter);
 				receiveCounter++;
 			}
 		}
 
-		if (XbeeCheckSum(receiveBuffer, packageLength) == receiveBuffer[packageLength - 1]) {
-			for (int i = 0; i < packageLength; i++) {
-				packageReceiveBuffer[packageReceiveBufferHead][i] = receiveBuffer[i];
-			}
+		char packageBuff[50];
+		int length = packageAssembly.GetLength();
+		char chk = packageAssembly.GetChecksum();
 
-			if ((packageReceiveBufferHead < PackageReceiveBufferSize - 1)) {
-				packageReceiveBufferHead++;
-			}
-			else {
-				packageReceiveBufferHead = 0;
-			}
+		packageAssembly.GetEntirePackage(packageBuff);
+
+		if (XbeeCheckSum(packageBuff, packageAssembly.GetLength()) == packageAssembly.GetChecksum()) {
+				packageQueue.push(packageAssembly);
 		}
 	}
-}
-
-int GetData(char MAC_adress[], char data[], int *dataLength) {
-	if (packageReceiveBufferHead != packageReceiveBufferTail) {
-		int type;
-		char xbeeID;
-		for (int k = 0; k < 8; k++) {
-			MAC_adress[k] = packageReceiveBuffer[packageReceiveBufferTail][5 + k]; //skip to mac adress 	
-		}
-
-
-		if (packageReceiveBuffer[packageReceiveBufferTail][15] == 0x44 && packageReceiveBuffer[packageReceiveBufferTail][16] == 0x30) {
-			type = 1; // LED digital output command
-		}
-		else if (packageReceiveBuffer[packageReceiveBufferTail][15] == 0x44 && packageReceiveBuffer[packageReceiveBufferTail][16] == 0x31) {
-			type = 2; // ADC setup response
-		}
-		else if (packageReceiveBuffer[packageReceiveBufferTail][15] == 0x49 && packageReceiveBuffer[packageReceiveBufferTail][16] == 0x53) {
-			type = 3; // ADC readings package
-		}
-		else {
-			type = 0;
-		}
-
-		switch (type) {
-		case 1:
-			*dataLength = 1;
-			break;
-		case 2:
-			*dataLength = 1;
-			break;
-		case 3:
-			*dataLength = packageReceiveLength[packageReceiveBufferTail] - 18; //this is a package type that contains more than one byte of data
-			break;
-		default:
-			*dataLength = 0;
-		}
-
-		for (int k = 0; k < *dataLength; k++) {
-			data[k] = packageReceiveBuffer[packageReceiveBufferTail][17 + k];
-		}
-
-
-
-		if (packageReceiveBufferTail < PackageReceiveBufferSize - 1) {
-			packageReceiveBufferTail++;
-		}
-		else {
-			packageReceiveBufferTail = 0;
-		}
-		return type;
-	}
-	return 0;
 }
 
 // Compare MAC_adress to the list of Xbees. Return Xbee number if there is a match, if no match is found returns -1
@@ -245,8 +184,13 @@ int main(int argc, char** argv) {
 		}
 		*/
 
-		type = GetData(MAC_adress, data, &dataLength);
-		PrintMacInfo(MAC_adress);
+		if (!packageQueue.empty()) {
+			Packages package = packageQueue.front();
+			packageQueue.pop();
+			package.GetMAC(MAC_adress);
+
+			PrintMacInfo(MAC_adress);
+		}
 
 		sleep(1);
 
@@ -273,8 +217,8 @@ int main(int argc, char** argv) {
 				}
 				*/
 
-		type = GetData(MAC_adress, data, &dataLength);
-		PrintMacInfo(MAC_adress);
+		//type = GetData(MAC_adress, data, &dataLength);
+		//PrintMacInfo(MAC_adress);
 
 
 		sleep(1);
@@ -391,3 +335,5 @@ int XbeeParseResponse(char *package, int packageLength) {
 	return returnValue;
 
 }
+
+

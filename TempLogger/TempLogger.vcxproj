@@ -76,9 +76,11 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Packages.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="devices.h" />
+    <ClInclude Include="Packages.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>

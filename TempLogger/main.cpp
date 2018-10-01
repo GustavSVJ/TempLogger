@@ -126,17 +126,22 @@ int main(int argc, char** argv) {
 			Packages package = packageQueue.front();
 			packageQueue.pop();
 
-			//char cmd[2];
+			char cmd[2];
+			package.GetCmd(cmd);
 
-			//package.GetCmd(cmd);
-			
-			//char adcBitmask;
-			//char adcValues[10][2];
+			if (cmd[0] == 'I' && cmd[1] == 'S') {
+				char adcBitmask;
+				char adcValues[10][2];
+				for (int i = 0; i < 10; i++) {
+					adcValues[i][0] = 0x00;
+					adcValues[i][1] = 0x00;
+				}
 
-			//package.ParseISRespons(&adcBitmask, adcValues);
-			//char macAdress[8];
-			//package.GetMAC(macAdress);
-			//Xbees::PrintMacInfo(macAdress);
+				package.ParseISRespons(&adcBitmask, adcValues);
+				printf("The ADC bitmask is: %x\n", adcBitmask);
+				printf("Measurement one is %x%x\n", adcValues[0][0], adcValues[0][1]);
+				printf("Measurement two is %x%x\n", adcValues[1][0], adcValues[1][1]);
+			}
 		}
 
 		sleep(1);

@@ -1,5 +1,6 @@
 #include "Packages.h"
 #include <string.h>
+#include <stdio.h>
 #include "devices.h"
 
 Packages::Packages()
@@ -88,15 +89,30 @@ int Packages::GetLength(void) {
 }
 
 void Packages::GetCmd(char cmd[]) {
-	for (int i = 0; i < 2; i++) {
-		cmd[i] = package[15 + i];
+	if (GetFrametype() == 0x17) {
+		for (int i = 0; i < 2; i++) {
+			cmd[i] = package[16 + i];
+		}
 	}
+	else if (GetFrametype() == 0x97){
+		for (int i = 0; i < 2; i++) {
+			cmd[i] = package[15 + i];
+		}
+	}
+	else {
+		printf("Error:The Frametype is unknown");
+		for (int i = 0; i < 2; i++) {
+			cmd[i] = 0x00;
+		}
+	}
+
 }
 
 int Packages::GetData(char data[]){
+	memset(data, 0, 50);
 	int lenght = 0;
-	for (int i = 0; i < GetLength() - 1; i++) {
-		data[i] = package[17 + i];
+	for (int i = 17; i < GetLength() - 1; i++) {
+		data[i-17] = package[i];
 		lenght++;
 	}
 	return lenght;
@@ -106,4 +122,49 @@ char Packages::GetChecksum() {
 	return package[GetLength() - 1];
 }
 
+char Packages::GetFrametype() {
+	return package[3];
+}
+
+int Packages::ParseISRespons(char *ADCBitmask, char ADCReadings[][2]) {
+	char cmd[2];
+	GetCmd(cmd);
+	if (cmd[0] == 'I' && cmd[1] == 'S') {
+		char data[50];
+		int length = GetData(data);
+
+		*ADCBitmask = data[4];
+		char n = data[4];
+
+		char count = 0;
+		
+		while (n) {
+			count += n & 1;
+			n >>= 1;
+		}
+
+		if (length == count * 2 + 7) {
+			int locOuter = 0;
+			int locInner = 0;
+			for (int i = 7; i < count * 2 + 7 ;i++) {
+				if (locInner == 2) {
+					locOuter++;
+					locInner = 0;
+				}
+				ADCReadings[locOuter][locInner] = data[i];
+				locInner++;
+			}
+			return count;
+		}
+		else {
+			printf("Error:The bitmask doesn't match the number of returned bytes!");
+			return -1;
+		}
+
+	}
+	else {
+		printf("Error:The received package was not a IS package! The package type was %x %x\n", cmd[0], cmd[1]);
+		return -1;
+	}
+}
 

@@ -1,6 +1,9 @@
 #ifndef XBEES_H_
 #define XBEES_H_
 #include "Packages.h"
+#include <queue>
+
+using namespace std;
 
 ///<summary>Class for functions concerning the Xbee's</summary>
 class Xbees
@@ -23,6 +26,13 @@ public:
 	///<param name="package">The package to send.</param>
 	///<returns>Returns either the number of bytes send or -1 if an error occured.</returns>
 	static int Transmit(int UART, Packages package);
+
+	///<summary>Send a package to the Xbee via UART and retry every 5 seconds until succes or max number of tries</summary>
+	///<param name="UART">File reference to the UART.</param>
+	///<param name="package">The package to send.</param>
+	///<param name="maxTries">The number of maximum number of tries before returning.</param>
+	///<returns>Returns the number of tries or -1 if an error occured.</returns>
+	static int TransmitAndCheckResponse(int UART, Packages package, int maxTries, queue<Packages> *packageQueue);
 
 };
 

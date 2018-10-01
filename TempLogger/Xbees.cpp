@@ -3,6 +3,10 @@
 #include "Packages.h"
 #include <stdio.h>
 #include <unistd.h>			//Used for UART
+#include <queue>
+#include <string.h>
+
+using namespace std;
 
 Xbees::Xbees()
 {
@@ -52,4 +56,38 @@ int Xbees::Transmit(int UART, Packages package) {
 	int n = write(UART, buff, package.GetLength());
 
 	return n;
+}
+
+int Xbees::TransmitAndCheckResponse(int UART, Packages package, int maxTries, queue<Packages> *packageQueue) {
+	char buff[50];
+	package.GetEntirePackage(buff);
+
+	for (int counter = 0; counter < maxTries; counter++) {
+		int n = write(UART, buff, package.GetLength());
+
+		if (n == package.GetLength()) {
+			sleep(1);
+			if (!packageQueue->empty()) {
+				Packages packageReceived = packageQueue->back();
+				
+				char cmdA[2], cmdB[2];
+				packageReceived.GetCmd(cmdA);
+				package.GetCmd(cmdB);
+
+				if (cmdA[0] == cmdB[0] && cmdA[1] == cmdB[1]) {
+					return counter + 1;
+				}
+				else {
+					sleep(4);
+				}
+			}
+		}
+		else {
+			printf("Error:The package failed to send!\n");
+			return -1;
+		}
+	}
+
+	printf("Error:The package failed to send!\n");
+	return -1;
 }

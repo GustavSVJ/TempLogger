@@ -93,37 +93,64 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
+	Packages packageAssembly;
+
+	packageAssembly.AssemblePackage(0, D0, new (char){ 0x02 }, 1);
+	int status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
+
 	while (1) {
 
-		Packages packageAssembly;
-
-		packageAssembly.AssemblePackage(0, D0, new (char){ 0x05 }, 1);
-		int status = Xbees::Transmit(UART, packageAssembly);
+		packageAssembly.AssemblePackage(0, D1, new (char){ 0x05 }, 1);
+		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
 
 
 		if (status > -1) {
-			printf("D0 turned on!\n");
+			printf("D0 turned on! It took %d tries\n", status);
+		}
+		else {
+			printf("An error occurred while transmitting command...\n");
+		}
+		sleep(1);
+
+		packageAssembly.AssemblePackage(0, READ_PINS, new (char){ 0x00 }, 0);
+		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
+
+		if (status > -1) {
+			printf("Send IS request! It took %d tries\n", status);
 		}
 		else {
 			printf("An error occurred while transmitting command...\n");
 		}
 
-		if (!packageQueue.empty()) {
+		while (!packageQueue.empty()) {
 			Packages package = packageQueue.front();
 			packageQueue.pop();
 
-			char macAdress[8];
-			package.GetMAC(macAdress);
-			Xbees::PrintMacInfo(macAdress);
+			char cmd[2];
+			package.GetCmd(cmd);
+
+			if (cmd[0] == 'I' && cmd[1] == 'S') {
+				char adcBitmask;
+				char adcValues[10][2];
+				for (int i = 0; i < 10; i++) {
+					adcValues[i][0] = 0x00;
+					adcValues[i][1] = 0x00;
+				}
+
+				package.ParseISRespons(&adcBitmask, adcValues);
+				printf("The ADC bitmask is: %x\n", adcBitmask);
+				printf("Measurement one is %x%x\n", adcValues[0][0], adcValues[0][1]);
+				printf("Measurement two is %x%x\n", adcValues[1][0], adcValues[1][1]);
+			}
 		}
 
 		sleep(1);
 
-		packageAssembly.AssemblePackage(0, D0, new (char) { 0x04 }, 1);
-		status = Xbees::Transmit(UART, packageAssembly);
+		packageAssembly.AssemblePackage(0, D1, new (char) { 0x04 }, 1);
+		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
 
 		if (status > -1) {
-			printf("D0 turned off!\n");
+			printf("D0 turned off! It took %d tries\n", status);
 		}
 		else {
 			printf("An error occurred while transmitting command...\n");

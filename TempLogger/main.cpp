@@ -93,12 +93,15 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
+	Packages packageAssembly;
+
+	packageAssembly.AssemblePackage(0, D0, new (char){ 0x03 }, 1);
+	int status = Xbees::Transmit(UART, packageAssembly);
+
 	while (1) {
 
-		Packages packageAssembly;
-
-		packageAssembly.AssemblePackage(0, D0, new (char){ 0x05 }, 1);
-		int status = Xbees::Transmit(UART, packageAssembly);
+		packageAssembly.AssemblePackage(0, D1, new (char){ 0x05 }, 1);
+		status = Xbees::Transmit(UART, packageAssembly);
 
 
 		if (status > -1) {
@@ -107,11 +110,30 @@ int main(int argc, char** argv) {
 		else {
 			printf("An error occurred while transmitting command...\n");
 		}
+		sleep(1);
 
-		if (!packageQueue.empty()) {
+		packageAssembly.AssemblePackage(0, READ_PINS, new (char){ 0x00 }, 0);
+		status = Xbees::Transmit(UART, packageAssembly);
+
+		if (status > -1) {
+			printf("D0 turned on!\n");
+		}
+		else {
+			printf("An error occurred while transmitting command...\n");
+		}
+
+		while (!packageQueue.empty()) {
 			Packages package = packageQueue.front();
 			packageQueue.pop();
 
+			char cmd[2];
+
+			package.GetCmd(cmd);
+
+			char adcBitmask;
+			char adcValues[10][2];
+
+			package.ParseISRespons(&adcBitmask, adcValues);
 			char macAdress[8];
 			package.GetMAC(macAdress);
 			Xbees::PrintMacInfo(macAdress);
@@ -119,7 +141,7 @@ int main(int argc, char** argv) {
 
 		sleep(1);
 
-		packageAssembly.AssemblePackage(0, D0, new (char) { 0x04 }, 1);
+		packageAssembly.AssemblePackage(0, D1, new (char) { 0x04 }, 1);
 		status = Xbees::Transmit(UART, packageAssembly);
 
 		if (status > -1) {

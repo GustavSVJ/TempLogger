@@ -95,9 +95,10 @@ void Packages::GetCmd(char cmd[]) {
 }
 
 int Packages::GetData(char data[]){
+	memset(data, 0, 50);
 	int lenght = 0;
-	for (int i = 0; i < GetLength() - 1; i++) {
-		data[i] = package[17 + i];
+	for (int i = 17; i < GetLength() - 1; i++) {
+		data[i-17] = package[i];
 		lenght++;
 	}
 	return lenght;
@@ -124,10 +125,10 @@ int Packages::ParseISRespons(char *ADCBitmask, char ADCReadings[][2]) {
 			n >>= 1;
 		}
 
-		if (length == count * 2 + 6) {
+		if (length == count * 2 + 7) {
 			int locOuter = 0;
 			int locInner = 0;
-			for (int i = 7; i < count + 7;i++) {
+			for (int i = 7; i < count * 2 + 7 ;i++) {
 				if (locInner == 2) {
 					locOuter++;
 					locInner = 0;
@@ -144,7 +145,7 @@ int Packages::ParseISRespons(char *ADCBitmask, char ADCReadings[][2]) {
 
 	}
 	else {
-		printf("Error:The received package was not a IS package! The package type was %s\n", cmd);
+		printf("Error:The received package was not a IS package! The package type was %x %x\n", cmd[0], cmd[1]);
 		return -1;
 	}
 }

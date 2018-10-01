@@ -27,10 +27,13 @@ float Temperature::Volt2Celsius(float VD1, float VD2) {
 	double A = 3.354016E-03;
 	double B = 2.569850E-04;
 	double C = 2.620131E-06;
-	double T = (1 / (A + B * log(RNTC) + C * (log(RNTC)*log(RNTC)*log(RNTC)))) + 272;
+	double T = (1 / (A + B * log(RNTC) + C * (log(RNTC)*log(RNTC)*log(RNTC)))) - 272;
 	return (float) T; 
 }
 
-void Temperature::PrintTemperature(float T) {
+void Temperature::PrintTemperature(char Sample[], char VCC[]) {
+	float VD2 = Sample2Volt(Sample);
+	float VD1 = Sample2Volt(VCC);
+	float T = Volt2Celsius(VD1, VD2);
 	printf("Temperature is: %f\n", T);
 }

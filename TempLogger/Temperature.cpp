@@ -2,7 +2,7 @@
 #include "Packages.h"
 #include <math.h>
 #include <stdio.h>
-#define ADC_REF 1.2 // Volt
+#define ADC_REF 1.2f // Volt
 #define R1 47500 //Ohm
 
 Temperature::Temperature()
@@ -17,7 +17,7 @@ Temperature::~Temperature()
 
 float Temperature::Sample2Volt(char ADC_data[]) {
 	int Sample = (ADC_data[0] << 8) + ADC_data[1];
-	float Volt = Sample * (ADC_REF / 1024);
+	float Volt = (float) Sample * (ADC_REF / 1024);
 	return Volt;
 }
 

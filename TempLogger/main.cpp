@@ -26,8 +26,6 @@
 using namespace std;
 
 void UARTSetup(int uart0_filestream);
-int XbeeTransmit(int ref, char *package, int packageLength);
-int XbeeReceive(int ref, char *package, int packageLength);
 unsigned char XbeeCheckSum(char *package, int packageLength);
 int XbeeAssembleCommand(char *output, const unsigned char *mac, const unsigned char *command, int commandLength);
 int XbeeParseResponse(char *package, int packageLength);
@@ -68,7 +66,7 @@ void *UARTReceive(void *UARTReference) {
 		char packageBuff[50];
 		packageAssembly.GetEntirePackage(packageBuff);
 
-		if (XbeeCheckSum(packageBuff, packageAssembly.GetLength()) == packageAssembly.GetChecksum()) {
+		if (packageAssembly.CalculateChecksum() == packageAssembly.GetChecksum()) {
 				packageQueue.push(packageAssembly);
 		}
 	}
@@ -90,33 +88,27 @@ int main(int argc, char** argv) {
 
 	fcntl(UART, F_SETFL, 0);
 
-	char buf[30];
-	char MAC_adress[8];
-	char data[25];
-	int dataLength;
-	int type;
-
-
 	sleep(1);
 
 	printf("Starting program!\n");
 
-	int rc;
 	pthread_t thread;
 
-	rc = pthread_create(&thread, NULL, UARTReceive, (void *)UART);
+	
 
-	if (rc) {
-		cout << "Error:unable to create thread," << rc << endl;
+	if (pthread_create(&thread, NULL, UARTReceive, (void *)UART)) {
+		cout << "Error:unable to create thread" << endl;
 		exit(-1);
 	}
 
 
 	while (1) {
-		char commandBuffer[50];
-		int commandLenght = XbeeAssembleCommand(commandBuffer, xbees[0].mac, D0_ON, 3);
-		int status = XbeeTransmit(UART, commandBuffer, commandLenght);
 
+		Packages packageAssembly;
+		char cmd[2] = { 0x44, 0x30 };
+
+		packageAssembly.AssemblePackage(0, cmd, new (char){ 0x05 }, 1);
+		int status = Xbees::Transmit(UART, packageAssembly);
 
 
 		if (status > -1) {
@@ -140,17 +132,16 @@ int main(int argc, char** argv) {
 		if (!packageQueue.empty()) {
 			Packages package = packageQueue.front();
 			packageQueue.pop();
-			package.GetMAC(MAC_adress);
 
-			Xbees::PrintMacInfo(MAC_adress);
+			char macAdress[8];
+			package.GetMAC(macAdress);
+			Xbees::PrintMacInfo(macAdress);
 		}
 
 		sleep(1);
 
-		commandLenght = XbeeAssembleCommand(commandBuffer, xbees[0].mac, D0_OFF, 3);
-		status = XbeeTransmit(UART, commandBuffer, commandLenght);
-
-
+		packageAssembly.AssemblePackage(0, cmd, new (char) { 0x04 }, 1);
+		status = Xbees::Transmit(UART, packageAssembly);
 
 		if (status > -1) {
 			printf("D0 turned off!\n");
@@ -158,21 +149,6 @@ int main(int argc, char** argv) {
 		else {
 			printf("An error occurred while transmitting command...\n");
 		}
-		/*
-				if (status < 0) {
-					printf("An error occurred while reading response\n");
-				}
-				else if (status == 0) {
-					printf("No response received\n");
-				}
-				else {
-					XbeeParseResponse(buf, status);
-				}
-				*/
-
-		//type = GetData(MAC_adress, data, &dataLength);
-		//PrintMacInfo(MAC_adress);
-
 
 		sleep(1);
 	}
@@ -192,71 +168,7 @@ void UARTSetup(int uart0_filestream) {
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 }
 
-int XbeeTransmit(int ref, char *package, int packageLength) {
-	// Write to the port
-	int n = write(ref, package, packageLength);
-
-	return n;
-}
-
-int XbeeReceive(int ref, char *package, int packageLength) {
-
-	int n = read(ref, (void*)package, packageLength);
-
-	return n;
-}
-
-unsigned char XbeeCheckSum(char *package, int packageLength) {
-	unsigned char checksum = 0;
-	long sum = 0;
-
-	for (int i = 3; i < packageLength - 1; i++) {
-
-		sum += package[i];
-		checksum = (unsigned char)0xFF - sum;
-	}
-
-	return checksum;
-}
-
-int XbeeAssembleCommand(char *output, const unsigned char *mac, const unsigned char *command, int commandLength) {
-
-	int n = 13 + commandLength;
-
-	output[0] = 0x7E; //Start delimiter
-
-	//Length of the package
-	output[1] = n >> 8;
-	output[2] = n & 0x00FF;
-
-	output[3] = 0x17; //Frame type
-	output[4] = 0x01; //Frame ID
-
-	//MAC address for receiver
-	output[5] = mac[0];
-	output[6] = mac[1];
-	output[7] = mac[2];
-	output[8] = mac[3];
-	output[9] = mac[4];
-	output[10] = mac[5];
-	output[11] = mac[6];
-	output[12] = mac[7];
-
-	//16-bit destination address
-	output[13] = 0xFF;
-	output[14] = 0xFE;
-
-	output[15] = 0x02; //Remote command options
-
-	for (int i = 0; i < commandLength; i++) {
-		output[16 + i] = command[i];
-	}
-
-	output[16 + commandLength] = XbeeCheckSum(output, 17 + commandLength);
-
-	return 17 + commandLength;
-}
-
+/*
 int XbeeParseResponse(char *package, int packageLength) {
 	int returnValue = -1;
 
@@ -288,5 +200,5 @@ int XbeeParseResponse(char *package, int packageLength) {
 	return returnValue;
 
 }
-
+*/
 

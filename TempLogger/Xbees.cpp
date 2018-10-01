@@ -1,11 +1,12 @@
 #include "Xbees.h"
 #include "devices.h"
+#include "Packages.h"
 #include <stdio.h>
+#include <unistd.h>			//Used for UART
 
 Xbees::Xbees()
 {
 }
-
 
 Xbees::~Xbees()
 {
@@ -41,4 +42,14 @@ void Xbees::PrintMacInfo(char MAC_adress[]) {
 	else {
 		printf("Unknown MAC adress\n");
 	}
+}
+
+int Xbees::Transmit(int UART, Packages package) {
+
+	char buff[50];
+	package.GetEntirePackage(buff);
+
+	int n = write(UART, buff, package.GetLength());
+
+	return n;
 }

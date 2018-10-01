@@ -13,6 +13,10 @@ public:
 	///<param name="location">The position in the package array where the value should be added.</param>
 	void AddByte(char byte, int location);
 
+	int AssemblePackage(int deviceID, char command[], char data[], char dataLength);
+
+	char CalculateChecksum();
+
 	///<summary>Gets the entire package string.</summary>
 	///<param name="package">Used to return the package. Must be at least 50 bytes long.</param>
 	///<returns>Returns the number of bytes in the package.</returns>

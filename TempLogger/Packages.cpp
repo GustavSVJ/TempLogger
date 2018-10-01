@@ -17,20 +17,21 @@ int Packages::GetEntirePackage(char fullPackage[]) {
 	for (int i = 0; i < length; i++) {
 		fullPackage[i] = package[i];
 	}
+	return length;
 }
 
 void Packages::AddByte(char byte, int location) {
 	package[location] = byte;
 }
 
-int Packages::AssemblePackage(int deviceID, char command[], char data[], char dataLength) {
+int Packages::AssemblePackage(int deviceID, const char command[], char data[], char dataLength) {
 	int length = 15 + dataLength;
 
 	package[0] = 0x7E; //Start delimiter
 
 	//Length of the package
-	package[1] = length >> 8;
-	package[2] = length & 0x00FF;
+	package[1] = (char)(length >> 8);
+	package[2] = (char)(length & 0x00FF);
 
 	package[3] = 0x17; //Frame type
 	package[4] = 0x01; //Frame ID
@@ -70,7 +71,7 @@ char Packages::CalculateChecksum() {
 	for (int i = 3; i < GetLength() - 1; i++) {
 
 		sum += package[i];
-		checksum = (unsigned char)0xFF - sum;
+		checksum = (unsigned char)((unsigned char)0xFF - sum);
 	}
 
 	return checksum;

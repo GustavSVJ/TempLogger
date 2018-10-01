@@ -27,13 +27,13 @@ public:
 };
 
 //commands
-/*
-char READ_PINS[2] = { 0x49, 0x53 };
-char D0[2] = { 0x44, 0x30};
+
+const char READ_PINS[] = { 0x49, 0x53 };
+const char D0[] = { 0x44, 0x30};
 const char D1[] = { 0x44, 0x31};
 const char D2[] = { 0x44, 0x32};
 const char D3[] = { 0x44, 0x33};
 const char D4[] = { 0x44, 0x34};
 const char D5[] = { 0x44, 0x35};
-*/
+
 #endif /* XBEES_H_ */

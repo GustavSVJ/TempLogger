@@ -13,8 +13,16 @@ public:
 	///<param name="location">The position in the package array where the value should be added.</param>
 	void AddByte(char byte, int location);
 
-	int AssemblePackage(int deviceID, char command[], char data[], char dataLength);
+	///<summary>Assembles a package of up to 50 bytes using the input parameters.</summary>
+	///<param name="deviceID">The deviceID for the Xbee to access (0-2).</param>
+	///<param name="command">The AT command to use.</param>
+	///<param name="data">The data following the AT command.</param>
+	///<param name="dataLength">The length of the data array.</param>
+	///<returns>Returns the number of bytes in the assembled package.</returns>
+	int AssemblePackage(int deviceID, const char command[], char data[], char dataLength);
 
+	///<summary>Calculates the checksum using the data contained in the package.</summary>
+	///<returns>Returns the calculated checksum.</returns>
 	char CalculateChecksum();
 
 	///<summary>Gets the entire package string.</summary>

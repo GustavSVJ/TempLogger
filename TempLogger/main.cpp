@@ -26,9 +26,6 @@
 using namespace std;
 
 void UARTSetup(int uart0_filestream);
-unsigned char XbeeCheckSum(char *package, int packageLength);
-int XbeeAssembleCommand(char *output, const unsigned char *mac, const unsigned char *command, int commandLength);
-int XbeeParseResponse(char *package, int packageLength);
 
 queue<Packages> packageQueue;
 
@@ -63,9 +60,6 @@ void *UARTReceive(void *UARTReference) {
 			}
 		}
 
-		char packageBuff[50];
-		packageAssembly.GetEntirePackage(packageBuff);
-
 		if (packageAssembly.CalculateChecksum() == packageAssembly.GetChecksum()) {
 				packageQueue.push(packageAssembly);
 		}
@@ -94,20 +88,16 @@ int main(int argc, char** argv) {
 
 	pthread_t thread;
 
-	
-
 	if (pthread_create(&thread, NULL, UARTReceive, (void *)UART)) {
 		cout << "Error:unable to create thread" << endl;
 		exit(-1);
 	}
 
-
 	while (1) {
 
 		Packages packageAssembly;
-		char cmd[2] = { 0x44, 0x30 };
 
-		packageAssembly.AssemblePackage(0, cmd, new (char){ 0x05 }, 1);
+		packageAssembly.AssemblePackage(0, D0, new (char){ 0x05 }, 1);
 		int status = Xbees::Transmit(UART, packageAssembly);
 
 
@@ -117,17 +107,6 @@ int main(int argc, char** argv) {
 		else {
 			printf("An error occurred while transmitting command...\n");
 		}
-		/*
-		if (status < 0) {
-			printf("An error occurred while reading response\n");
-		}
-		else if (status == 0) {
-			printf("No response received\n");
-		}
-		else {
-			XbeeParseResponse(buf, status);
-		}
-		*/
 
 		if (!packageQueue.empty()) {
 			Packages package = packageQueue.front();
@@ -140,7 +119,7 @@ int main(int argc, char** argv) {
 
 		sleep(1);
 
-		packageAssembly.AssemblePackage(0, cmd, new (char) { 0x04 }, 1);
+		packageAssembly.AssemblePackage(0, D0, new (char) { 0x04 }, 1);
 		status = Xbees::Transmit(UART, packageAssembly);
 
 		if (status > -1) {
@@ -149,7 +128,6 @@ int main(int argc, char** argv) {
 		else {
 			printf("An error occurred while transmitting command...\n");
 		}
-
 		sleep(1);
 	}
 

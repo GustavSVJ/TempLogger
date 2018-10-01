@@ -51,6 +51,8 @@ public:
 	///<returns>Returns the checksum byte.</returns>
 	char GetChecksum();
 
+	int ParseISRespons(char *ADCBitmask, char ADCReadings[][2]);
+
 private:
 
 	char package[50];

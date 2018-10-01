@@ -95,17 +95,17 @@ int main(int argc, char** argv) {
 
 	Packages packageAssembly;
 
-	packageAssembly.AssemblePackage(0, D0, new (char){ 0x03 }, 1);
-	int status = Xbees::Transmit(UART, packageAssembly);
+	packageAssembly.AssemblePackage(0, D0, new (char){ 0x02 }, 1);
+	int status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
 
 	while (1) {
 
 		packageAssembly.AssemblePackage(0, D1, new (char){ 0x05 }, 1);
-		status = Xbees::Transmit(UART, packageAssembly);
+		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
 
 
 		if (status > -1) {
-			printf("D0 turned on!\n");
+			printf("D0 turned on! It took %d tries\n", status);
 		}
 		else {
 			printf("An error occurred while transmitting command...\n");
@@ -113,10 +113,10 @@ int main(int argc, char** argv) {
 		sleep(1);
 
 		packageAssembly.AssemblePackage(0, READ_PINS, new (char){ 0x00 }, 0);
-		status = Xbees::Transmit(UART, packageAssembly);
+		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
 
 		if (status > -1) {
-			printf("D0 turned on!\n");
+			printf("Send IS request! It took %d tries\n", status);
 		}
 		else {
 			printf("An error occurred while transmitting command...\n");
@@ -126,26 +126,26 @@ int main(int argc, char** argv) {
 			Packages package = packageQueue.front();
 			packageQueue.pop();
 
-			char cmd[2];
+			//char cmd[2];
 
-			package.GetCmd(cmd);
+			//package.GetCmd(cmd);
+			
+			//char adcBitmask;
+			//char adcValues[10][2];
 
-			char adcBitmask;
-			char adcValues[10][2];
-
-			package.ParseISRespons(&adcBitmask, adcValues);
-			char macAdress[8];
-			package.GetMAC(macAdress);
-			Xbees::PrintMacInfo(macAdress);
+			//package.ParseISRespons(&adcBitmask, adcValues);
+			//char macAdress[8];
+			//package.GetMAC(macAdress);
+			//Xbees::PrintMacInfo(macAdress);
 		}
 
 		sleep(1);
 
 		packageAssembly.AssemblePackage(0, D1, new (char) { 0x04 }, 1);
-		status = Xbees::Transmit(UART, packageAssembly);
+		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
 
 		if (status > -1) {
-			printf("D0 turned off!\n");
+			printf("D0 turned off! It took %d tries\n", status);
 		}
 		else {
 			printf("An error occurred while transmitting command...\n");

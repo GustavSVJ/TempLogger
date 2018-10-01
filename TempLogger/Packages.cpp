@@ -89,9 +89,23 @@ int Packages::GetLength(void) {
 }
 
 void Packages::GetCmd(char cmd[]) {
-	for (int i = 0; i < 2; i++) {
-		cmd[i] = package[15 + i];
+	if (GetFrametype() == 0x17) {
+		for (int i = 0; i < 2; i++) {
+			cmd[i] = package[16 + i];
+		}
 	}
+	else if (GetFrametype() == 0x97){
+		for (int i = 0; i < 2; i++) {
+			cmd[i] = package[15 + i];
+		}
+	}
+	else {
+		printf("Error:The Frametype is unknown");
+		for (int i = 0; i < 2; i++) {
+			cmd[i] = 0x00;
+		}
+	}
+
 }
 
 int Packages::GetData(char data[]){
@@ -106,6 +120,10 @@ int Packages::GetData(char data[]){
 
 char Packages::GetChecksum() {
 	return package[GetLength() - 1];
+}
+
+char Packages::GetFrametype() {
+	return package[3];
 }
 
 int Packages::ParseISRespons(char *ADCBitmask, char ADCReadings[][2]) {

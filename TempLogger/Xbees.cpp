@@ -11,7 +11,6 @@ Xbees::~Xbees()
 {
 }
 
-// Compare MAC_adress to the list of Xbees. Return Xbee number if there is a match, if no match is found returns -1
 int Xbees::getDeviceID(char MAC[]) {
 	int match;
 

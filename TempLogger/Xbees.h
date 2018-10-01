@@ -1,12 +1,19 @@
 #pragma once
 
+///<summary>Class for functions concerning the Xbee's</summary>
 class Xbees
 {
 public:
 	Xbees();
 	~Xbees();
 
+	///<summary>Checks if the MAC is known</summary>
+	///<param name="MAC">The MAC adress to check.</param>
+	///<returns>Returns the DeviceID.</returns>
 	static int getDeviceID(char MAC[]);
+
+	///<summary>Checks if the MAC is known and prints the corresponding name if it is.</summary>
+	///<param name="MAC">The MAC adress to check.</param>
 	static void PrintMacInfo(char MAC[]);
 };
 

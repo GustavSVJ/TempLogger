@@ -31,9 +31,6 @@ int XbeeReceive(int ref, char *package, int packageLength);
 unsigned char XbeeCheckSum(char *package, int packageLength);
 int XbeeAssembleCommand(char *output, const unsigned char *mac, const unsigned char *command, int commandLength);
 int XbeeParseResponse(char *package, int packageLength);
-int GetData(char MAC_adress[], char data[], int dataLength);
-char CompareALLMAC(char MAC_adress[]);
-int CompareMAC(char MAC[], char k);
 
 queue<Packages> packageQueue;
 
@@ -69,9 +66,6 @@ void *UARTReceive(void *UARTReference) {
 		}
 
 		char packageBuff[50];
-		int length = packageAssembly.GetLength();
-		char chk = packageAssembly.GetChecksum();
-
 		packageAssembly.GetEntirePackage(packageBuff);
 
 		if (XbeeCheckSum(packageBuff, packageAssembly.GetLength()) == packageAssembly.GetChecksum()) {

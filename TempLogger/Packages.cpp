@@ -32,13 +32,10 @@ int Packages::GetLength(void) {
 	return (package[1] << 4) + package[2] + 4;
 }
 
-int Packages::GetCmd(char cmd[]) {
-	int lenght = 0;
+void Packages::GetCmd(char cmd[]) {
 	for (int i = 0; i < 2; i++) {
 		cmd[i] = package[15 + i];
-		lenght++;
 	}
-	return lenght;
 }
 
 int Packages::GetData(char data[]){

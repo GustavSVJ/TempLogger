@@ -22,49 +22,14 @@
 #include "devices.h"
 #include "Packages.h"
 #include "Xbees.h"
+#include "Temperature.h"
 
 using namespace std;
 
 void UARTSetup(int uart0_filestream);
+void *UARTReceive(void *UARTReference);
 
 queue<Packages> packageQueue;
-
-void *UARTReceive(void *UARTReference) {
-	while (1) {
-
-		Packages packageAssembly;
-
-		char byteBuffer[5];
-		memset(byteBuffer, 0, 5);
-		int UARTFilestream = (int)UARTReference;
-		int receiveCounter = 0;
-
-		while (byteBuffer[0] != 0x7E) {
-			read(UARTFilestream, (void*)byteBuffer, 1);
-		}
-
-		packageAssembly.AddByte(byteBuffer[0], receiveCounter);
-		receiveCounter++;
-
-		while (receiveCounter < 3) {
-			if (read(UARTFilestream, (void*)byteBuffer, 1) == 1) {
-				packageAssembly.AddByte(byteBuffer[0], receiveCounter);
-				receiveCounter++;
-			}
-		}
-
-		while (receiveCounter < packageAssembly.GetLength()) {
-			if (read(UARTFilestream, (void*)byteBuffer, 1) == 1) {
-				packageAssembly.AddByte(byteBuffer[0], receiveCounter);
-				receiveCounter++;
-			}
-		}
-
-		if (packageAssembly.CalculateChecksum() == packageAssembly.GetChecksum()) {
-				packageQueue.push(packageAssembly);
-		}
-	}
-}
 
 int main(int argc, char** argv) {
 
@@ -74,7 +39,7 @@ int main(int argc, char** argv) {
 	UART = open("/dev/serial0", O_RDWR | O_NOCTTY | O_NDELAY);  //serialOpen ("/dev/ttyAMA0", 9600) ;used when serial uart
 	if (UART == -1) {
 		printf("Failed to open UART! Exiting program...\n");
-		return(-1);
+		exit(-1);
 	}
 	else {
 		UARTSetup(UART);
@@ -138,13 +103,9 @@ int main(int argc, char** argv) {
 				}
 
 				package.ParseISRespons(&adcBitmask, adcValues);
-				printf("The ADC bitmask is: %x\n", adcBitmask);
-				printf("Measurement one is %x%x\n", adcValues[0][0], adcValues[0][1]);
-				printf("Measurement two is %x%x\n", adcValues[1][0], adcValues[1][1]);
+				Temperature::PrintTemperature(adcValues[0], adcValues[1]);
 			}
 		}
-
-		sleep(1);
 
 		packageAssembly.AssemblePackage(0, D1, new (char) { 0x04 }, 1);
 		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
@@ -155,7 +116,6 @@ int main(int argc, char** argv) {
 		else {
 			printf("An error occurred while transmitting command...\n");
 		}
-		sleep(1);
 	}
 
 }
@@ -173,37 +133,39 @@ void UARTSetup(int uart0_filestream) {
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 }
 
-/*
-int XbeeParseResponse(char *package, int packageLength) {
-	int returnValue = -1;
+void *UARTReceive(void *UARTReference) {
+	while (1) {
 
-	if (XbeeCheckSum(package, packageLength) == package[packageLength - 1]) {
-		//checksum okay
-		switch (package[packageLength - 2]) {
-		case 0:
-			printf("Command was correctly received!\n");
-			returnValue = 0;
-			break;
-		case 4:
-			printf("No response received!\n");
-			break;
-		default:
-			printf("An unknown response was received: %i", package[packageLength - 2]);
-			break;
+		Packages packageAssembly;
+
+		char byteBuffer[5];
+		memset(byteBuffer, 0, 5);
+		int UARTFilestream = (int)UARTReference;
+		int receiveCounter = 0;
+
+		while (byteBuffer[0] != 0x7E) {
+			read(UARTFilestream, (void*)byteBuffer, 1);
+		}
+
+		packageAssembly.AddByte(byteBuffer[0], receiveCounter);
+		receiveCounter++;
+
+		while (receiveCounter < 3) {
+			if (read(UARTFilestream, (void*)byteBuffer, 1) == 1) {
+				packageAssembly.AddByte(byteBuffer[0], receiveCounter);
+				receiveCounter++;
+			}
+		}
+
+		while (receiveCounter < packageAssembly.GetLength()) {
+			if (read(UARTFilestream, (void*)byteBuffer, 1) == 1) {
+				packageAssembly.AddByte(byteBuffer[0], receiveCounter);
+				receiveCounter++;
+			}
+		}
+
+		if (packageAssembly.CalculateChecksum() == packageAssembly.GetChecksum()) {
+			packageQueue.push(packageAssembly);
 		}
 	}
-	else {
-		printf("The checksum was incorrect!\n");
-	}
-
-	printf("Response received: ");
-	for (int i = 0; i < packageLength; i++) {
-		printf("%x ", package[i]);
-	}
-	printf("\n");
-
-	return returnValue;
-
 }
-*/
-

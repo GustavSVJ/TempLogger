@@ -2,8 +2,15 @@
 #include "Packages.h"
 #include <math.h>
 #include <stdio.h>
+
+
 #define ADC_REF 1.2f // Volt
-#define R1 47500 //Ohm
+#define R1 47000 //Ohm
+#define Rt 10000 //Ohm
+#define A 3.354016E-03
+#define B 2.569850E-04
+#define C 2.620131E-06
+
 
 Temperature::Temperature()
 {
@@ -24,10 +31,10 @@ float Temperature::Sample2Volt(char ADC_data[]) {
 float Temperature::Volt2Celsius(float VD1, float VD2) {
 	double I = (VD1 - VD2) / R1;
 	double RNTC = VD2 / I;
-	double A = 3.354016E-03;
-	double B = 2.569850E-04;
-	double C = 2.620131E-06;
-	double T = (1 / (A + B * log(RNTC) + C * (log(RNTC)*log(RNTC)*log(RNTC)))) - 272;
+
+	double temp = log(RNTC / Rt);
+	double T = (1 / (A + B * temp + C * temp * temp)) - 273;
+	
 	return (float) T; 
 }
 

@@ -24,8 +24,6 @@
 #include "Xbees.h"
 #include "Temperature.h"
 
-Stuffff
-
 using namespace std;
 
 void UARTSetup(int uart0_filestream);

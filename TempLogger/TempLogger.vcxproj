@@ -77,12 +77,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Packages.cpp" />
+    <ClCompile Include="SQLHandler.cpp" />
     <ClCompile Include="Temperature.cpp" />
     <ClCompile Include="Xbees.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="devices.h" />
     <ClInclude Include="Packages.h" />
+    <ClInclude Include="SQLHandler.h" />
     <ClInclude Include="Temperature.h" />
     <ClInclude Include="Xbees.h" />
   </ItemGroup>
@@ -92,7 +94,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(Link.AdditionalLibraryDirectories);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(StlAdditionalDependencies);%(Link.AdditionalDependencies); -pthread</AdditionalDependencies>
+      <AdditionalDependencies>$(StlAdditionalDependencies);%(Link.AdditionalDependencies); -pthread -lmysqlcppconn</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -23,6 +23,7 @@
 #include "Packages.h"
 #include "Xbees.h"
 #include "Temperature.h"
+#include "SQLHandler.h"
 
 using namespace std;
 
@@ -32,6 +33,21 @@ void *UARTReceive(void *UARTReference);
 queue<Packages> packageQueue;
 
 int main(int argc, char** argv) {
+
+	printf("Starting program!\n");
+
+	int outLog;
+	outLog = open("log", O_WRONLY | O_CREAT, 0644);
+	if (outLog == -1) {
+		perror("open failed");
+		exit(1);
+	}
+
+	if (dup2(outLog, 1) == -1) {
+		perror("dup2 failed");
+		exit(1);
+	}
+
 
 	int UART;
 
@@ -49,7 +65,9 @@ int main(int argc, char** argv) {
 
 	sleep(1);
 
-	printf("Starting program!\n");
+	SQLHandler sqlHandler;
+	sqlHandler.OpenConnection();
+
 
 	pthread_t thread;
 
@@ -108,6 +126,11 @@ int main(int argc, char** argv) {
 
 				package.ParseISRespons(&adcBitmask, adcValues);
 				Temperature::PrintTemperature(adcValues[0], adcValues[1]);
+				
+				char mac[8];
+				package.GetMAC(mac);
+				int sensorID = Xbees::getDeviceID(mac);
+				sqlHandler.WriteTempData(sensorID, xbees[sensorID].name, Temperature::GetTemperature(adcValues[0], adcValues[1]));
 			}
 		}
 
@@ -120,6 +143,9 @@ int main(int argc, char** argv) {
 		else {
 			printf("An error occurred while transmitting command...\n");
 		}
+
+		sleep(600);
+
 	}
 
 }

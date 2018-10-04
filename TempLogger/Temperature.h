@@ -20,5 +20,7 @@ public:
 	///<param name="Sample">The sample contained in a char array with most significant byte as the first element.</param>
 	///<param name="VCC">VCC value contained in a char array with most significant byte as the first element.</param>
 	static void PrintTemperature(char Sample[], char VCC[]);
+
+	static float GetTemperature(char Sample[], char VCC[]);
 };
 

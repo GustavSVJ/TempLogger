@@ -44,3 +44,10 @@ void Temperature::PrintTemperature(char Sample[], char VCC[]) {
 	float T = Volt2Celsius(VD1, VD2);
 	printf("Temperature is: %f\n", T);
 }
+
+float Temperature::GetTemperature(char Sample[], char VCC[]) {
+	float VD2 = Sample2Volt(Sample);
+	float VD1 = Sample2Volt(VCC);
+	float T = Volt2Celsius(VD1, VD2);
+	return T;
+}

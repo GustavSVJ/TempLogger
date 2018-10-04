@@ -51,8 +51,14 @@ public:
 	///<returns>Returns the checksum byte.</returns>
 	char GetChecksum();
 
+	///<summary>Gets the frametype from the package.</summary>
+	///<returns>Returns the frametype byte.</returns>
 	char GetFrametype();
 
+	///<summary>Parses the response from an IS request.</summary>
+	///<param name="ADCBitmask">Used to return the ADC bitmask from the package.</param>
+	///<param name="ADCBitmask">Used to return the ADC samples from the package.</param>
+	///<returns>Returns the number of ADC samples</returns>
 	int ParseISRespons(char *ADCBitmask, char ADCReadings[][2]);
 
 private:

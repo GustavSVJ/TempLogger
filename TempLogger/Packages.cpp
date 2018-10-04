@@ -100,7 +100,7 @@ void Packages::GetCmd(char cmd[]) {
 		}
 	}
 	else {
-		printf("Error:The Frametype is unknown");
+		printf("Error:The Frametype is unknown\n");
 		for (int i = 0; i < 2; i++) {
 			cmd[i] = 0x00;
 		}

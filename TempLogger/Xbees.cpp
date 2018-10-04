@@ -59,7 +59,7 @@ int Xbees::Transmit(int UART, Packages package) {
 }
 
 int Xbees::TransmitAndCheckResponse(int UART, Packages package, int maxTries, queue<Packages> *packageQueue) {
-	char buff[50];
+	char buff[50], data[50];
 	package.GetEntirePackage(buff);
 
 	for (int counter = 0; counter < maxTries; counter++) {
@@ -72,9 +72,10 @@ int Xbees::TransmitAndCheckResponse(int UART, Packages package, int maxTries, qu
 				
 				char cmdA[2], cmdB[2];
 				packageReceived.GetCmd(cmdA);
+				packageReceived.GetData(data);
 				package.GetCmd(cmdB);
 
-				if (cmdA[0] == cmdB[0] && cmdA[1] == cmdB[1]) {
+				if (cmdA[0] == cmdB[0] && cmdA[1] == cmdB[1] && data[0] == 0x00) {
 					return counter + 1;
 				}
 				else {
@@ -83,11 +84,11 @@ int Xbees::TransmitAndCheckResponse(int UART, Packages package, int maxTries, qu
 			}
 		}
 		else {
-			printf("Error:The package failed to send!\n");
+			printf("Error:The package failed to send! The error code returned was %x\n", data[0]);
 			return -1;
 		}
 	}
 
-	printf("Error:The package failed to send!\n");
+	printf("Error:The package failed to send! The error code returned was %x\n", data[0]);
 	return -1;
 }

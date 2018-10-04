@@ -61,7 +61,11 @@ int main(int argc, char** argv) {
 	Packages packageAssembly;
 
 	packageAssembly.AssemblePackage(0, D0, new (char){ 0x02 }, 1);
-	int status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
+	int status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 50, &packageQueue);
+	if (status == -1) {
+		printf("The setup could not be completed! Exiting...\n", status);
+		exit(-1);
+	}
 
 	while (1) {
 

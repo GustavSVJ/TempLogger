@@ -9,17 +9,21 @@ using namespace std;
 class Xbees
 {
 public:
-	Xbees();
+	Xbees(char MAC[], char description[], Packages setupPackages[], int setupPackagesCount);
 	~Xbees();
 
+	/*
 	///<summary>Checks if the MAC is known</summary>
 	///<param name="MAC">The MAC adress to check.</param>
 	///<returns>Returns the DeviceID.</returns>
 	static int getDeviceID(char MAC[]);
+	*/
 
+	/*
 	///<summary>Checks if the MAC is known and prints the corresponding name if it is.</summary>
 	///<param name="MAC">The MAC adress to check.</param>
 	static void PrintMacInfo(char MAC[]);
+	*/
 
 	///<summary>Send a package to the Xbee via UART</summary>
 	///<param name="UART">File reference to the UART.</param>
@@ -33,6 +37,13 @@ public:
 	///<param name="maxTries">The number of maximum number of tries before returning.</param>
 	///<returns>Returns the number of tries or -1 if an error occured.</returns>
 	static int TransmitAndCheckResponse(int UART, Packages package, int maxTries, queue<Packages> *packageQueue);
+
+private:
+	int status;
+	char MAC[8];
+	char description[50];
+	Packages setupPackages[10];
+	int setupPackagesCount;
 
 };
 

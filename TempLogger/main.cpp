@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
 
 	sleep(1);
 
+
 	printf("Starting program!\n");
 
 	pthread_t thread;
@@ -61,7 +62,16 @@ int main(int argc, char** argv) {
 	Packages packageAssembly;
 
 	packageAssembly.AssemblePackage(0, D0, new (char){ 0x02 }, 1);
+	
+	char MAC[8] = { 0x00,0x13,0xA2,0x00,0x40,0xE7,0xA4,0xE4 };
+	Packages stuff[2] = { packageAssembly};
+	Xbees xbee1 = Xbees(MAC, "This is an Xbee", new (Packages){ packageAssembly }, 1);
+
 	int status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 50, &packageQueue);
+
+
+	
+
 	if (status == -1) {
 		printf("The setup could not be completed! Exiting...\n", status);
 		exit(-1);
@@ -91,6 +101,16 @@ int main(int argc, char** argv) {
 			printf("An error occurred while transmitting command...\n");
 		}
 
+		packageAssembly.AssemblePackage(0, D1, new (char) { 0x04 }, 1);
+		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
+
+		if (status > -1) {
+			printf("D0 turned off! It took %d tries\n", status);
+		}
+		else {
+			printf("An error occurred while transmitting command...\n");
+		}
+
 		while (!packageQueue.empty()) {
 			Packages package = packageQueue.front();
 			packageQueue.pop();
@@ -109,16 +129,6 @@ int main(int argc, char** argv) {
 				package.ParseISRespons(&adcBitmask, adcValues);
 				Temperature::PrintTemperature(adcValues[0], adcValues[1]);
 			}
-		}
-
-		packageAssembly.AssemblePackage(0, D1, new (char) { 0x04 }, 1);
-		status = Xbees::TransmitAndCheckResponse(UART, packageAssembly, 10, &packageQueue);
-
-		if (status > -1) {
-			printf("D0 turned off! It took %d tries\n", status);
-		}
-		else {
-			printf("An error occurred while transmitting command...\n");
 		}
 	}
 

@@ -8,14 +8,26 @@
 
 using namespace std;
 
-Xbees::Xbees()
+Xbees::Xbees(char MAC[], char description[], Packages setupPackages[], int setupPackagesCount)
 {
+	for (int i = 0; i < 8; i++) {
+		this->MAC[i] = MAC[i];
+	}
+	strcpy(this->description, description);
+
+	this->setupPackagesCount = 0;
+	
+	for (int i = 0; i < setupPackagesCount; i++) {
+		this->setupPackages[i] = setupPackages[i];
+		this->setupPackagesCount++;
+	}
 }
 
 Xbees::~Xbees()
 {
 }
 
+/*
 int Xbees::getDeviceID(char MAC[]) {
 	int match;
 
@@ -34,8 +46,9 @@ int Xbees::getDeviceID(char MAC[]) {
 
 	return -1;
 }
+*/
 
-
+/*
 void Xbees::PrintMacInfo(char MAC_adress[]) {
 	int xbeeID = getDeviceID(MAC_adress);
 	if (xbeeID == 0 && xbeeID < 3) {
@@ -47,6 +60,7 @@ void Xbees::PrintMacInfo(char MAC_adress[]) {
 		printf("Unknown MAC adress\n");
 	}
 }
+*/
 
 int Xbees::Transmit(int UART, Packages package) {
 
